@@ -1,35 +1,31 @@
 export default async function handler(req, res) {
-  // 1. Cabeceras CORS (Indispensables)
+  // 1. Cabeceras CORS para tu extensión
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-goog-api-key');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // 2. Extracción de datos
   const { text, apiKey } = req.body;
 
-  if (!text || !apiKey) {
-    return res.status(400).json({ error: "Faltan parámetros" });
-  }
-
-  // 3. LA URL DEFINITIVA (Sin v1beta, usando v1 estable)
-  // El modelo se escribe exactamente: gemini-1.5-flash
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // 2. URL basada en la documentación oficial (v1beta)
+  // Usamos gemini-1.5-flash que es el más estable para cuentas gratuitas
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
   try {
-    const response = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey // Usamos la cabecera oficial de la documentación
+      },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: `Resume esto en 3 puntos clave:\n\n${text}` }]
-          }
-        ]
+        contents: [{
+          parts: [{ text: `Actúa como un experto. Resume en 3 puntos clave:\n\n${text}` }]
+        }]
       })
     });
 
