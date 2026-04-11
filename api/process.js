@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // 1. Cabeceras CORS para tu extensión
+  // 1. Cabeceras CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-goog-api-key');
@@ -11,16 +11,15 @@ export default async function handler(req, res) {
 
   const { text, apiKey } = req.body;
 
-  // 2. URL basada en la documentación oficial (v1beta)
-  // Usamos gemini-1.5-flash que es el más estable para cuentas gratuitas
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+  // 2. ACTUALIZACIÓN: Usamos Gemini 2.0 Flash (v1beta)
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey // Usamos la cabecera oficial de la documentación
+        'x-goog-api-key': apiKey 
       },
       body: JSON.stringify({
         contents: [{
@@ -38,7 +37,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Enviamos la respuesta de vuelta a tu oficina
     res.status(200).json(data);
 
   } catch (error) {
