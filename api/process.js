@@ -1,29 +1,24 @@
 export default async function handler(req, res) {
-  // 1. Cabeceras CORS para permitir la comunicación con la extensión de Chrome
+  // 1. Cabeceras CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Responder a peticiones pre-vuelo
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // 2. Seguridad: Solo aceptamos POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: "Método no permitido" });
+    return res.status(405).json({ error: "Usa POST" });
   }
 
   const { text, apiKey } = req.body;
 
-  if (!text || !apiKey) {
-    return res.status(400).json({ error: "Faltan datos requeridos (text o apiKey)" });
-  }
-
-  // 3. URL Estable (v1) de Gemini 1.5 Flash
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // 2. Usamos el modelo con el sufijo -latest que es el más compatible
+  // Probamos con la v1beta que suele tener mayor disponibilidad para modelos Flash
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
   try {
     const response = await fetch(geminiUrl, {
@@ -38,19 +33,17 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Si Google devuelve error, lo pasamos al popup para saber qué pasó
     if (!response.ok) {
+      // Si falla la v1beta, el error nos dirá por qué, pero el túnel ya funciona
       return res.status(response.status).json({ 
-        error: "Error desde la API de Google", 
+        error: "Google rechazó la petición", 
         details: data 
       });
     }
 
-    // 4. Enviamos el JSON de Google de vuelta a la extensión
     res.status(200).json(data);
 
   } catch (error) {
-    console.error("Fallo en el servidor puente:", error);
-    res.status(500).json({ error: "Error interno del puente", message: error.message });
+    res.status(500).json({ error: "Error en el servidor puente", message: error.message });
   }
 }
