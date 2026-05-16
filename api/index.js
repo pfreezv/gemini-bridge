@@ -111,7 +111,7 @@ Recomendaciones preanestésicas:
 </datos_automatizacion>
 `;
 
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   try {
     // 5. Envío de la petición estructurada hacia la API de Google
