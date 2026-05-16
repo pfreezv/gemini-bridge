@@ -1,17 +1,29 @@
 export default async function handler(req, res) {
-  // 1. Cabeceras CORS
+  // 1. Cabeceras CORS para permitir peticiones desde la extensión de Chrome
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-goog-api-key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // Responder de inmediato a las peticiones preflight de CORS
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  const { text, apiKey } = req.body;
+  // 2. Extraer el texto clínico no estructurado enviado por el frontend
+  const { text } = req.body; 
 
-  // 2. Instrucciones del Sistema (Contexto y Rol del Anestesiólogo)
+  // 3. Recuperar la API Key de Gemini desde las variables de entorno de Vercel
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ 
+      error: "Configuración incompleta en el servidor", 
+      message: "Falta configurar la variable ambiental GEMINI_API_KEY en el panel de Vercel." 
+    });
+  }
+
+  // 4. Instrucciones del Sistema (Contexto Clínico y Reglas del JSON)
   const systemInstructionText = `
 # ROL Y CONTEXTO
 Eres un anestesiólogo experto especializado en medicina preoperatoria y valoración del riesgo quirúrgico. 
@@ -102,6 +114,7 @@ Recomendaciones preanestésicas:
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent';
 
   try {
+    // 5. Envío de la petición estructurada hacia la API de Google
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -115,20 +128,21 @@ Recomendaciones preanestésicas:
         contents: [{
           parts: [{ text: text }]
         }],
-        // 3. NUEVO: Añadimos la herramienta de búsqueda en Google
+        // Habilitar la función de búsqueda de Google en internet
         tools: [
           {
             googleSearch: {}
           }
         ],
         generationConfig: {
-          temperature: 0.1
+          temperature: 0.1 // Forzar baja variabilidad para evitar alucinaciones
         }
       })
     });
 
     const data = await response.json();
 
+    // Si Google responde con un código de error (ej. clave inválida o mal formato)
     if (!response.ok) {
       return res.status(response.status).json({ 
         error: "Google rechazó la petición", 
@@ -136,9 +150,11 @@ Recomendaciones preanestésicas:
       });
     }
 
+    // Retornar la respuesta exitosa directamente al frontend
     res.status(200).json(data);
 
   } catch (error) {
+    // Capturar fallos de red o caídas del servicio puente
     res.status(500).json({ error: "Fallo en el servidor puente", message: error.message });
   }
 }
