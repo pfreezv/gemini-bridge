@@ -99,7 +99,7 @@ Recomendaciones preanestésicas:
 </datos_automatizacion>
 `;
 
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent';
 
   try {
     const response = await fetch(url, {
