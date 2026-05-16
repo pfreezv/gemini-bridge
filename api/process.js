@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const { text, apiKey } = req.body;
 
   // 2. ACTUALIZACIÓN: Usamos Gemini 2.0 Flash (v1beta)
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
 
   try {
     const response = await fetch(url, {
