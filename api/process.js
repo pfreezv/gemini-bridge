@@ -99,7 +99,7 @@ Recomendaciones preanestésicas:
 </datos_automatizacion>
 `;
 
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
   try {
     const response = await fetch(url, {
@@ -108,16 +108,21 @@ Recomendaciones preanestésicas:
         'Content-Type': 'application/json',
         'x-goog-api-key': apiKey 
       },
-      // 3. Estructuramos el payload separando las instrucciones del contenido del usuario
       body: JSON.stringify({
         systemInstruction: {
           parts: [{ text: systemInstructionText }]
         },
         contents: [{
-          parts: [{ text: text }] // Aquí solo va el texto clínico que pasas desde el frontend
+          parts: [{ text: text }]
         }],
+        // 3. NUEVO: Añadimos la herramienta de búsqueda en Google
+        tools: [
+          {
+            googleSearch: {}
+          }
+        ],
         generationConfig: {
-          temperature: 0.1 // Temperatura baja para que sea analítico, estricto y no alucine datos
+          temperature: 0.1
         }
       })
     });
