@@ -41,7 +41,7 @@ export default async function handler(req, res) {
   `;
 
   // Apuntando a un modelo Pro para mayor capacidad de razonamiento clínico
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro:generateContent';
 
   try {
     const response = await fetch(url, {
