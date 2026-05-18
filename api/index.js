@@ -111,11 +111,10 @@ Recomendaciones preanestésicas:
 </datos_automatizacion>
 `;
 
-  // 5. Apuntamos a la versión v1 ESTABLE y al modelo canónico sin sufijos
-  const url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
   try {
-    // 6. Envío de la petición estructurada hacia la API de Google
+    // 5. Envío de la petición estructurada hacia la API de Google
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -123,41 +122,39 @@ Recomendaciones preanestésicas:
         'x-goog-api-key': apiKey 
       },
       body: JSON.stringify({
-        // Rol explícito "system" para las instrucciones base
         systemInstruction: {
-          role: "system",
           parts: [{ text: systemInstructionText }]
         },
-        // Rol explícito "user" para los datos clínicos extraídos
         contents: [{
-          role: "user",
           parts: [{ text: text }]
         }],
+        // Habilitar la función de búsqueda de Google en internet
+        tools: [
+          {
+            googleSearch: {}
+          }
+        ],
         generationConfig: {
-          temperature: 0.1, // Temperatura baja para extracción precisa y determinista sin alucinaciones
-          topP: 0.1
+          temperature: 0.1 // Forzar baja variabilidad para evitar alucinaciones
         }
       })
     });
 
     const data = await response.json();
 
-    // 7. Si Google responde con un código de error (ej. clave inválida, cuota excedida o esquema rechazado)
+    // Si Google responde con un código de error (ej. clave inválida o mal formato)
     if (!response.ok) {
-      // Registrar el error exacto en los logs de Vercel para facilitar el diagnóstico
-      console.error("Error de Google:", JSON.stringify(data));
       return res.status(response.status).json({ 
         error: "Google rechazó la petición", 
-        detalles_google: data 
+        details: data 
       });
     }
 
-    // 8. Retornar la respuesta exitosa directamente al frontend
+    // Retornar la respuesta exitosa directamente al frontend
     res.status(200).json(data);
 
   } catch (error) {
-    // 9. Capturar fallos de red o caídas del servicio puente
-    console.error("Error del servidor puente:", error);
+    // Capturar fallos de red o caídas del servicio puente
     res.status(500).json({ error: "Fallo en el servidor puente", message: error.message });
   }
 }
