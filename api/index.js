@@ -111,8 +111,8 @@ Recomendaciones preanestésicas:
 </datos_automatizacion>
 `;
 
-  // 5. Apuntamos a la versión exacta de producción 002 (la más avanzada y estable)
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-002:generateContent';
+  // 5. Apuntamos a la versión v1 ESTABLE y al modelo canónico sin sufijos
+  const url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent';
 
   try {
     // 6. Envío de la petición estructurada hacia la API de Google
